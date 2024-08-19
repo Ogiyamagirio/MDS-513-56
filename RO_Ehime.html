@@ -1,0 +1,140 @@
+<html lang="ja">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<title>Spoken Dialog by Javascript</title>
+</head>
+<body>
+
+<h1>愛媛の観光地や方言を教えるよ</h1>
+
+<p>
+<button id="startButton">start</button>
+<button id="stopButton">stop</button>
+</p>
+
+<p>
+<div id="resultOutput"></div>
+</p>
+
+<script>
+// 応答の定義（ハッシュ）    
+var response = {
+    "愛媛の観光地を教えて。": ["愛媛の観光地を紹介します。こちらはいかがでしょうか。", 
+	"https://www.bing.com/ck/a?!&&p=91e5158fa57300d3JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIzMQ&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e6%9d%be%e5%b1%b1%e5%9f%8e&u=a1aHR0cHM6Ly93d3cubWF0c3V5YW1ham8uanAv&ntb=1",
+	"https://higiriyaki.jp/",
+	"https://www.bing.com/ck/a?!&&p=986794eb9915280bJmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTg3MQ&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&u=a1L21hcHM_Jm1lcGk9MTA3flJlc3RhdXJhbnR-TWlkZGxlT2ZQYWdlfkVudGl0eV9WZXJ0aWNhbF9MaXN0X0NhcmQmdHk9MTcmcT0lRTQlQjglODAlRTklOTYlODAlRTUlQUUlQjYmc2VnbWVudD1SZXN0YXVyYW50JnBwb2lzPTMzLjgzODg3NDgxNjg5NDUzXzEzMi43Njk4MzY0MjU3ODEyNV8lRTYlQTglQUElRTYlQjUlOUMlRTUlQUUlQjYlRTclQjMlQkIlRTMlODMlQTklRTMlODMlQkMlRTMlODMlQTElRTMlODMlQjMlMjAlRTQlQjglODAlRTklOTYlODAlRTUlQUUlQjYlMjAlRTUlQTQlQTclRTglQTElOTclRTklODElOTMlRTUlQkElOTdfWU41Mjg2eDg5NjkxNDQzNDA5Mjg0ODMyNjd-MzMuNzk2MjI2NTAxNDY0ODQ0XzEzMi44MzIzMDU5MDgyMDMxMl8lRTYlQTglQUElRTYlQjUlOUMlRTUlQUUlQjYlRTclQjMlQkIlRTMlODMlQTklRTMlODMlQkMlRTMlODMlQTElRTMlODMlQjMlMjAlRTQlQjglODAlRTklOTYlODAlRTUlQUUlQjYlMjAlRTMlODMlOTUlRTMlODIlQjglRTMlODIlQjAlRTMlODMlQTklRTMlODMlQjMlRTklODclOEQlRTQlQkYlQTElRTUlQkElOTdfWU41Mjg2eDExOTY3MTgxMzkzNzEwODY5NjgwfiZzZWk9MCZjcD0zMy44Mzg4NzV-MTMyLjc2OTgzNiZjaGlsZD0lMjZ0eSUzRDE4JTI2cSUzRCUyNUU2JTI1QTglMjVBQSUyNUU2JTI1QjUlMjU5QyUyNUU1JTI1QUUlMjVCNiUyNUU3JTI1QjMlMjVCQiUyNUUzJTI1ODMlMjVBOSUyNUUzJTI1ODMlMjVCQyUyNUUzJTI1ODMlMjVBMSUyNUUzJTI1ODMlMjVCMyUyNTIwJTI1RTQlMjVCOCUyNTgwJTI1RTklMjU5NiUyNTgwJTI1RTUlMjVBRSUyNUI2JTI1MjAlMjVFNSUyNUE0JTI1QTclMjVFOCUyNUExJTI1OTclMjVFOSUyNTgxJTI1OTMlMjVFNSUyNUJBJTI1OTclMjUyMCUyNUU0JTI1QjglMjU4MCUyNUU5JTI1OTYlMjU4MCUyNTIwJTI1RTUlMjVBRSUyNUI2JTI2c3MlM0R5cGlkLllONTI4Nng4OTY5MTQ0MzQwOTI4NDgzMjY3JTI2c2VnbWVudCUzRFJlc3RhdXJhbnQlMjZwcG9pcyUzRDMzLjgzODg3NDgxNjg5NDUzXzEzMi43Njk4MzY0MjU3ODEyNV8lMjVFNiUyNUE4JTI1QUElMjVFNiUyNUI1JTI1OUMlMjVFNSUyNUFFJTI1QjYlMjVFNyUyNUIzJTI1QkIlMjVFMyUyNTgzJTI1QTklMjVFMyUyNTgzJTI1QkMlMjVFMyUyNTgzJTI1QTElMjVFMyUyNTgzJTI1QjMlMjUyMCUyNUU0JTI1QjglMjU4MCUyNUU5JTI1OTYlMjU4MCUyNUU1JTI1QUUlMjVCNiUyNTIwJTI1RTUlMjVBNCUyNUE3JTI1RTglMjVBMSUyNTk3JTI1RTklMjU4MSUyNTkzJTI1RTUlMjVCQSUyNTk3JTI1MjAlMjVFNCUyNUI4JTI1ODAlMjVFOSUyNTk2JTI1ODAlMjUyMCUyNUU1JTI1QUUlMjVCNl9ZTjUyODZ4ODk2OTE0NDM0MDkyODQ4MzI2N34lMjZjcCUzRDMzLjgzODg3NX4xMzIuNzY5ODM2JTI2RW5hYmxlTWFwVmlld0NoYW5nZSUzRHRydWUmRk9STT1NUFNSUEw&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=22b389581a178137JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIyNQ&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e4%b8%8b%e7%81%98%e9%a7%85&u=a1aHR0cHM6Ly9zZWFzaWRlLXN0YXRpb24uY29tL3N0YXRpb24vc2hpbW9uYWRhLw&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=07958f4fb0ec29b5JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIwOA&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e9%81%93%e3%81%ae%e9%a7%85%e3%81%b5%e3%82%8f%e3%82%8a&u=a1aHR0cHM6Ly9mdXdhcmkub3IuanAv&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=2a05f1d4e96b625bJmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIzOA&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e9%81%93%e5%be%8c%e6%b8%a9%e6%b3%89&u=a1aHR0cHM6Ly9kb2dvLmpwLw&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=7deaf2cbd4d251d5JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIxNA&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e3%82%a8%e3%83%9f%e3%83%95%e3%83%ab%e6%9d%be%e5%89%8d&u=a1aHR0cHM6Ly9lbWlmdWxsLmpwLw&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=f8bf18fc02270862JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTI2NA&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e5%9b%9b%e5%9b%bd%e3%82%ab%e3%83%ab%e3%82%b9%e3%83%88&u=a1aHR0cHM6Ly93d3cuaXlva2FubmV0LmpwL2ZlYXR1cmUva2FydXN1dG8vZHJpdmU&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=f0dac97e3902aaa6JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIxNQ&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e9%81%93%e5%be%8c%e8%a1%97&u=a1aHR0cHM6Ly93d3cuZG9nby1zaG91dGVuZ2FpLmpwLw&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=20ad475f93f12965JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIzNw&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e4%b8%80%e8%88%88%e3%80%80%e6%9d%be%e5%b1%b1&u=a1aHR0cHM6Ly90YWJlbG9nLmNvbS9laGltZS9BMzgwMS9BMzgwMTAxLzM4MDAwMTM0Lz9tc29ja2lkPTI5OGNhZGUxOTE4MzZmYTIxZjYzYmUzYzkwMzQ2ZTk0&ntb=1",
+	"https://www.bing.com/ck/a?!&&p=def5fc380bccd693JmltdHM9MTcyNDAyNTYwMCZpZ3VpZD0yOThjYWRlMS05MTgzLTZmYTItMWY2My1iZTNjOTAzNDZlOTQmaW5zaWQ9NTIxOA&ptn=3&ver=2&hsh=3&fclid=298cade1-9183-6fa2-1f63-be3c90346e94&psq=%e5%a4%a7%e8%a1%97%e9%81%93&u=a1aHR0cHM6Ly93d3cub2thaWRvLmpwLw&ntb=1",
+	]
+};
+
+const startButton = document.querySelector('#startButton'); // 開始ボタン
+const stopButton = document.querySelector('#stopButton'); // 停止ボタン
+const resultOutput = document.querySelector('#resultOutput'); // 結果出力エリア
+
+if (!'SpeechSynthesisUtterance' in window) {
+    alert("あなたのブラウザはSpeech Synthesis APIに未対応です。");
+}
+const tts = new SpeechSynthesisUtterance(); // TTSインスタンスを生成
+//tts.text = textForm.value; // テキストを設定
+tts.lang = "ja-JP"; // 言語(日本語)、英語の場合はen-US
+tts.rate = 3.0; // 速度
+tts.pitch = 1.0; // 声の高さ
+tts.volume = 1.0; // 音量
+
+SpeechRecognition = webkitSpeechRecognition || SpeechRecognition;
+if (!'SpeechRecognition' in window) {
+    alert("あなたのブラウザはSpeech Recognition APIに未対応です。");
+}
+
+const asr = new SpeechRecognition(); // ASRインスタンスを生成
+asr.lang = "ja-JP"; // 言語（日本語）
+asr.interimResults = true; // 途中結果出力をオン
+asr.continuous = true; // 継続入力をオン
+
+let output = ''; // 出力
+
+// 認識結果が出力されたときのイベントハンドラ
+asr.onresult = function(event){
+    let transcript = event.results[event.resultIndex][0].transcript; // 結果文字列
+
+    let output_not_final = '';
+    if (event.results[event.resultIndex].isFinal) { // 結果が確定（Final）のとき
+	    asr.abort(); // 音声認識を停止
+	    let ret = response[transcript];
+
+        let answer;
+        let webpage;
+        
+        if(typeof ret == 'undefined'){
+	        let answer;
+		
+			let spel1 = transcript.replace('だから','やけん');
+			let spel2 = spel1.replace('から','けん');
+			let spel3 = spel2.replace('です','なんよね');
+			let spel4 = spel3.replace('なので','やけん');
+			let spel5 = spel4.replace('ので','けん');
+			let spel6 = spel5.replace('だけど','やけど');
+			let spel7 = spel6.replace('んだ','んよね');
+			let spel8 = spel7.replace('行ってきます','行ってこうわい');
+			let spel9 = spel8.replace('絆創膏','カットバン');
+	
+			output += transcript + ' => ' + "それは「" + spel8 + "」という風に伊予弁に言い換えられるよ" + '<br>';
+
+			tts.text = "それは「" + spel8 + "」という風に伊予弁に言い換えられるよ";
+			// 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
+			tts.onend = function(event){
+				asr.start(); // 音声認識を再開
+			}
+
+			speechSynthesis.speak(tts); // 再生
+    	}else{
+			var random = Math.floor( Math.random() * 11 ) + 1;
+			
+            answer = ret[0];
+            webpage = ret[random];
+			
+			output += transcript + ' => ' + answer + '<br>';
+
+			tts.text = answer;
+			// 再生が終了（end）ときのイベントハンドラ（終了したときに実行される）
+			tts.onend = function(event){
+            if(typeof webpage != 'undefined'){
+                location.href = webpage; // ページを移動
+            }   
+            asr.start(); // 音声認識を再開 
+	    }
+
+	    speechSynthesis.speak(tts); // 再生
+        }
+
+        
+    } else { // 結果がまだ未確定のとき
+        output_not_final = '<span style="color:#ddd;">' + transcript + '</span>';
+    }
+    resultOutput.innerHTML = output + output_not_final;
+}
+
+// 開始ボタンのイベントハンドラ
+startButton.addEventListener('click', function() {
+    asr.start();
+})
+
+// 停止ボタンのイベントハンドラ
+stopButton.addEventListener('click', function() {
+    asr.abort();
+    asr.stop();
+})
+</script>
+
+</body>
+</html>
